@@ -6,7 +6,7 @@
 
 readline(Socket) ->
 	{ok, Packet} = gen_tcp:recv(Socket, 0),
-	lists:delete(10, Packet).  % remove LF
+	lists:delete(13, lists:delete(10, Packet)).  % remove CR & LF
 		
 
 login(Socket) ->
@@ -16,6 +16,7 @@ login(Socket) ->
 	 %"new" -> create_user(Socket);
 	     _ -> gen_tcp:send(Socket, "password: "),
 		  Password = readline(Socket),
+		  io:format("Login [~s] pass [~s]~n", [User, Password]),
 		  case mud_user:login_ok(User, Password) of
 		  	false -> bye(Socket);
 			true -> terminal:start(Socket, User)
