@@ -10,20 +10,23 @@ start(Socket, Login) ->
 		User = spawn_link(fun () -> mud_user:start(Login, Self) end),
 		spawn_link(fun () -> receiver(Socket, User) end),
 		io:format("Login accepted for [~s]~n",[Login]),
-		sender(Socket, User).
+		self() ! { text, "Welcome to EMud 0.1 :)" },
+		sender(Socket, User, default_prompt()).
 
 
-sender(Socket, User) -> 
+sender(Socket, User, Prompt) -> 
 	receive
 		{ text, Text } ->
-			display(Socket, User, Text),
-			sender(Socket, User);
+			display(Socket, Prompt, Text),
+			sender(Socket, User, Prompt);
+		{ prompt, Newprompt } ->
+			sender(Socket, User, Newprompt);
 		quit ->
 			exit(closed);
 		Other ->
 			io:format("Unknown message in terminal ~p: ~p~n",
 				[self(), Other]),
-			sender(Socket, User)
+			sender(Socket, User, Prompt)
 	end.
 
 
@@ -33,14 +36,16 @@ receiver(Socket, User) ->
 	User ! parser:parse(Line),
 	receiver(Socket, User).
 	
-display(Socket, User, Text) ->
-	gen_tcp:send(Socket, Text),
-	gen_tcp:send(Socket, "\n"),
-	gen_tcp:send(Socket, prompt(User)),
-	gen_tcp:send(Socket, [255,249]).
+display(Socket, Prompt, Text) ->
+	gen_tcp:send(Socket, lists:flatten([
+		Text,
+		"\n",
+		Prompt,
+		[255,249]
+	])).
 
 
-prompt(_User) ->
+default_prompt() ->
 	"EMud> ".
 
 reaper(Socket) -> 
