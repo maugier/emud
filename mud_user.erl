@@ -1,7 +1,7 @@
 -module(mud_user).
 -author('Maxime Augier <max@xolus.net>').
 
--record(mud_user, { login, password }).
+-record(mud_user, { login, password, room=default_room }).
 
 
 -export([init/0, create/2, login_ok/2, start/2]).
@@ -15,29 +15,48 @@ create(Login, Password) ->
 	end,
 	mnesia:transaction(T).
 
-login_ok(Login, Password) ->
+get_user(Login) ->
 	{atomic, Res} = mnesia:transaction(fun() -> mnesia:read({mud_user, Login}) end),
 	case Res of
-		[] -> false;
-		[User] ->
+		[] -> error;
+		[H] -> H
+	end.
+
+login_ok(Login, Password) ->
+	case get_user(Login) of
+		error -> false;
+		User ->
 			string:equal(User#mud_user.password,Password)
 	end.
 
-start(User, Terminal) -> loop(User, Terminal).
+print(Terminal, Text) -> Terminal ! { text, Text }.
+
+start(Login, Terminal) -> 
+	User = get_user(Login),
+	true = is_record(User, mud_user),
+	User#mud_user.room ! { join, self(), User#mud_user.login },
+	loop(User, Terminal).
 
 loop(User, Terminal) ->
 	receive
 		quit ->
-			Terminal ! { text, "Goodbye!" },
+			print(Terminal,"Goodbye!"),
+			User#mud_user.room ! { part, self(), User#mud_user.login },
 			exit(closing);
 		error ->
-			Terminal ! { text, "What ?" },
+			print(Terminal,"What ?"),
 			loop(User, Terminal);
-		{ say, _Text } ->
-			Terminal ! { text, "says something..." },	
+		{ say, Text } ->
+			User#mud_user.room ! { say, self(), User#mud_user.login, Text },
 			loop(User, Terminal);
-		{ input, Line } ->
-			Terminal ! { text, Line },
+		{ said, _Pid, Pname, Text } ->
+			print(Terminal, [Pname, " says: ", Text]),
+			loop(User, Terminal);
+		{ joined, Name } ->
+			print(Terminal, [Name, " has joined."]),
+			loop(User, Terminal);
+		{ left, Name } ->
+			print(Terminal, [Name, " has left."]),
 			loop(User, Terminal);
 		Other -> 
 			io:fwrite("Unknown message: ~p~n",[Other]),

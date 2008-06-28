@@ -1,25 +1,34 @@
 -module(room).
 -author('Maxime Augier <max@xolus.net>').
 
--export([start/0]).
+-export([create_default/0, start/1, loop/2]).
 
-start() ->
-	spawn (fun () -> loop(dict:new()) end).
 
-loop(Members) ->
+create_default() ->
+	register(default_room, start("Default")).	
+
+start(Name) ->
+	pg2:create(all_rooms),
+	Roompid = spawn (fun () -> loop(Name, dict:new()) end),
+	ok = pg2:join(all_rooms, Roompid),
+	Roompid.
+
+loop(Name, Members) ->
 	receive
-		reload ->
-			room:loop(Members);
-  		{join, Pid} ->
-			io:format("Joined~n", []),
-			loop(dict:append(Pid, Pid, Members));
-		{part, Pid} ->
-			loop(dict:erase(Pid, Members));
-		{msg, Pid, Msg} ->
-			io:format("Message: [~p]~n", [Msg]),
-			bcast(Pid, Msg, Members),
-			loop(Members)
+		swapcode ->
+			room:loop(Name, Members);
+  		{join, Pid, Pname} ->
+			bcast({ joined, Pname }, Members),
+			loop(Name, dict:append(Pid, Pid, Members));
+		{part, Pid, Pname} ->
+			Nmem = dict:erase(Pid, Members),
+			bcast({ left, Pname }, Nmem),
+			loop(Name, Nmem);
+		{say, Pid, Pname, Text} ->
+			bcast({ said, Pid, Pname, Text }, Members),
+			loop(Name,Members)
 	end.
 
+bcast(Msg, Members) ->
+	dict:map(fun(Pid,_) -> Pid ! Msg end, Members).
 
-bcast(Src, Msg, Members) -> dict:map(fun (Pid,_) -> Pid ! {msg, Src, Msg} end, Members).
