@@ -3,8 +3,9 @@
 -export([parse/1]).
 
 
-parse(Text) -> case Text of
-	"quit" -> quit ;
-	[115|[97|[121|[32|Say]]]] -> { say, Say };
-	_ -> error
-end.
+parse("quit") -> quit;
+parse("look") -> look;
+parse([115,97,121,32|Say]) -> { say, Say };
+parse(_) -> error.
+
+

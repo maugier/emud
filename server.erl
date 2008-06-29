@@ -8,6 +8,8 @@
 init() ->
 	ok = mnesia:start(),
 	{atomic,ok} = mud_user:init(),
+	true = room:create_default(),
+	{atomic,ok} = mud_user:create("admin", "admin"),
 	ok .
 
 listen(Port) ->

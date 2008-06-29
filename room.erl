@@ -26,7 +26,16 @@ loop(Name, Members) ->
 			loop(Name, Nmem);
 		{say, Pid, Pname, Text} ->
 			bcast({ said, Pid, Pname, Text }, Members),
-			loop(Name,Members)
+			loop(Name,Members);
+		{look, Pid} -> 
+			io:format("Looking..."),
+			Pid ! { see, "This is a blank room..." },
+			dict:map(fun(Obj,_) ->
+				if Obj == Pid -> ok; true -> Obj ! { look, Pid } end end, Members),
+			loop(Name, Members);
+
+		Other -> io:format("unknown message in room: ~p~n", [Other])
+
 	end.
 
 bcast(Msg, Members) ->

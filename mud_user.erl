@@ -46,9 +46,27 @@ loop(User, Terminal) ->
 		error ->
 			print(Terminal,"What ?"),
 			loop(User, Terminal);
+
+		look ->
+			print(Terminal, "Looking!"),
+			User#mud_user.room ! { look, self() },
+			loop(User, Terminal);
+
+		{ look, Pid } ->
+			Pid ! { see, [ User#mud_user.login, " is standing here."] },
+			loop(User, Terminal);
+
+		{ see, Text } -> 
+			print(Terminal, Text),
+			loop(User, Terminal);
+
 		{ say, Text } ->
 			User#mud_user.room ! { say, self(), User#mud_user.login, Text },
 			loop(User, Terminal);
+		{ move, Room } ->
+			User#mud_user.room ! { part, self(), User#mud_user.login },
+			Room ! { join, self(), User#mud_user.login },
+			loop(User#mud_user{room=Room}, Terminal);
 		{ said, _Pid, Pname, Text } ->
 			print(Terminal, [Pname, " says: ", Text]),
 			loop(User, Terminal);
