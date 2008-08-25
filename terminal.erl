@@ -37,7 +37,7 @@ receiver(Socket, User) ->
 	receiver(Socket, User).
 	
 display(Socket, Prompt, Text) ->
-	gen_tcp:send(Socket, lists:flatten([
+	gen_tcp:send(Socket, format:parse([
 		Text,
 		"\n",
 		Prompt,

@@ -1,0 +1,43 @@
+
+
+server : listen for connexions, spawn terminal processes
+
+
+terminal : proceed with login, do prompting & async stuff
+
+
+mud_user : user process
+
+
+
+User interaction:
+
+  - inventory
+  - team
+  - world: encounters, pvp
+
+  - nodes: towns, places, etc
+  - travel: random encounters
+     travel step: continue, back off, escape ?
+
+
+  - combat actions:
+
+     - switch
+     - attack
+     - flee
+
+
+  Monster : attack list, base stats, level, xp, health, statusflags
+  Attack: type, power, precision
+
+
+Modules:
+
+ Rules/behaviours:
+
+  elements: element rules
+  monsters: list of base monsters
+  combat:   combat round rules
+
+
