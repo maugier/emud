@@ -10,11 +10,15 @@ start_link(Port, Fun) ->
 
 init(Port, Fun) ->
 	{ ok, LSocket } = gen_tcp:listen(Port, ?TCP_OPTIONS),
-	log:msg("Listening..."),
-	loop(LSocket, Module).
+	log:msg('INFO', "Listening on port ~p", [Port]),
+	loop(LSocket, Fun).
+
+handle(Socket, Fun) ->
+	Fun(Socket),
+	gen_tcp:close(Socket).
 
 loop(LSocket, Fun) ->
 	{ ok, Socket } = gen_tcp:accept(LSocket),	
-	Pid = spawn(fun () -> Fun(Socket) end),
-	log:msg("Listener launched"),
+	_Pid = spawn(fun () -> handle(Socket, Fun) end),
+	log:msg('INFO', "Accepted connection from ~p", [Socket]),
 	loop(LSocket, Fun).
