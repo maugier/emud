@@ -14,11 +14,19 @@ init(Port, Fun) ->
 	loop(LSocket, Fun).
 
 handle(Socket, Fun) ->
-	Fun(Socket),
-	gen_tcp:close(Socket).
+	spawn_link(fun () -> reaper(Socket) end),
+	Fun(Socket).
 
 loop(LSocket, Fun) ->
 	{ ok, Socket } = gen_tcp:accept(LSocket),	
 	_Pid = spawn(fun () -> handle(Socket, Fun) end),
 	log:msg('INFO', "Accepted connection from ~p", [Socket]),
 	loop(LSocket, Fun).
+
+reaper(Socket) ->
+	process_flag(trap_exit, true),
+	receive { 'EXIT', Parent, _Reason } ->
+		log:msg('INFO', "Client ~p died, reaping socket ~p",
+			[Parent, Socket]),
+		gen_tcp:close(Socket)
+	end.

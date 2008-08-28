@@ -7,7 +7,7 @@ message() -> format:parse(["Hello ", {color, red, "red"}, " ",
 
 
 answer(Socket) ->
-	gen_tcp:send(Socket, message()),
+	gen_tcp:send(Socket, [message(), "\n"]),
 	ok.
 
 

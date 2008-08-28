@@ -1,12 +1,21 @@
 
 
-server : listen for connexions, spawn terminal processes
+server : listen for connexions, spawn terminal processes with login
 
-
-terminal : proceed with login, do prompting & async stuff
-
-
+login : get credentials or creates new user, start user, run terminal
+terminal : do prompting & async stuff
 mud_user : user process
+
+
+server: launch listener (with login)
+
+listener: spawn script (login)
+login: do synchronous login stuff, check login validity, launch terminal
+process
+
+terminal: fork reception child, wait for incoming messages. Handle interaction
+with user.
+
 
 
 

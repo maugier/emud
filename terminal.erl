@@ -5,11 +5,10 @@
 
 
 start(Socket, Login) ->
-		spawn_link(fun () -> reaper(Socket) end),
 		Self = self(),
 		User = spawn_link(fun () -> mud_user:start(Login, Self) end),
 		spawn_link(fun () -> receiver(Socket, User) end),
-		io:format("Login accepted for [~s]~n",[Login]),
+		log:msg('INFO', "Login accepted for [~s]",[Login]),
 		self() ! { text, "Welcome to EMud 0.1 :)" },
 		sender(Socket, User, default_prompt()).
 
@@ -22,9 +21,9 @@ sender(Socket, User, Prompt) ->
 		{ prompt, Newprompt } ->
 			sender(Socket, User, Newprompt);
 		quit ->
-			exit(closed);
+			closed;
 		Other ->
-			io:format("Unknown message in terminal ~p: ~p~n",
+			log:msg('DEBUG', "Unknown message in terminal ~p: ~p",
 				[self(), Other]),
 			sender(Socket, User, Prompt)
 	end.
@@ -32,7 +31,6 @@ sender(Socket, User, Prompt) ->
 
 receiver(Socket, User) ->
 	Line = login:readline(Socket),
-	io:format("Got line [~s]~n", [Line]),
 	User ! parser:parse(Line),
 	receiver(Socket, User).
 	
@@ -46,12 +44,7 @@ display(Socket, Prompt, Text) ->
 
 
 default_prompt() ->
-	"EMud> ".
+	[{color, red, "E"},
+	 {color, blue, "Mud"},
+	 "> "].
 
-reaper(Socket) -> 
-	process_flag(trap_exit,true),
-	receive
-	{'EXIT', Parent, _Reason } -> 
-		io:fwrite("Closing client ~p ~n", [Parent]),
-		gen_tcp:close(Socket)
-	end.

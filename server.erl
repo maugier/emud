@@ -1,24 +1,19 @@
 -module(server).
 -author('Maxime Augier <max@xolus.net>').
 
--export([init/0, listen/1]).
+-export([start/0]).
 
--define(TCP_OPTIONS, [list, {packet, line}, {active, false}, {reuseaddr, true}]).
+-define(PORT, 1234).
 
-init() ->
+start() ->
+	log:msg('INFO', "Server booting"),
 	ok = mnesia:start(),
 	{atomic,ok} = mud_user:init(),
 	true = room:create_default(),
 	{atomic,ok} = mud_user:create("admin", "admin"),
+	log:msg('INFO', "Binding port ~p",[?PORT]),
+	listener:start_link(?PORT, fun login:start/1),
+	log:msg('INFO', "Server boot complete"),
 	ok .
 
-listen(Port) ->
-  { ok, LSocket } = gen_tcp:listen(Port, ?TCP_OPTIONS),
-  io:fwrite("Listening on port ~p~n", [Port]),
-  spawn(fun () -> accept(LSocket) end).
 
-accept(LSocket) ->
-  { ok, Socket } = gen_tcp:accept(LSocket),
-  Pid = spawn( fun() -> login:login(Socket) end),
-  io:fwrite("New connection ~p handled by ~p~n", [Socket, Pid]),
-  accept(LSocket).

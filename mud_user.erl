@@ -40,6 +40,7 @@ start(Login, Terminal) ->
 loop(User, Terminal) ->
 	receive
 		quit ->
+			log:msg('INFO',"User ~s disconnecting",[User#mud_user.login]),
 			print(Terminal,"Goodbye!"),
 			User#mud_user.room ! { part, self(), User#mud_user.login },
 			exit(closing);

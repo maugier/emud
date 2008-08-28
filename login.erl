@@ -1,7 +1,7 @@
 -module(login).
 -author("Maxime Augier <max@xolus.net>").
 
--export([login/1, readline/1]).
+-export([start/1, readline/1]).
 
 
 readline(Socket) ->
@@ -9,14 +9,14 @@ readline(Socket) ->
 	lists:delete(13, lists:delete(10, Packet)).  % remove CR & LF
 		
 
-login(Socket) ->
+start(Socket) ->
 	gen_tcp:send(Socket, "login: "),
 	User = readline(Socket),
 	case User of 
 	 %"new" -> create_user(Socket);
 	     _ -> gen_tcp:send(Socket, "password: "),
 		  Password = readline(Socket),
-		  io:format("Login [~s] pass [~s]~n", [User, Password]),
+		  log:msg('INFO', "Login [~s] pass [~s]", [User, Password]),
 		  case mud_user:login_ok(User, Password) of
 		  	false -> bye(Socket);
 			true -> terminal:start(Socket, User)
@@ -24,6 +24,6 @@ login(Socket) ->
 	end.
 
 bye(Socket) ->
-	io:fwrite("Login rejected on ~p~n",[Socket]),
+	log:msg('WARN',"Login rejected on ~p",[Socket]),
 	gen_tcp:send(Socket, "Sorry, bad login\n"),
-	gen_tcp:close(Socket).
+	ok.
