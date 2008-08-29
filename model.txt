@@ -17,6 +17,14 @@ terminal: fork reception child, wait for incoming messages. Handle interaction
 with user.
 
 
+World model:
+
+  Graph of nodes (cities) interconnected with roads.
+  within node: 
+  	look -> see description and exits ("safe" and "travel")
+
+  random encounters during travel. After each encounter, offer to continue,
+  back off or use an object.
 
 
 User interaction:
@@ -25,12 +33,7 @@ User interaction:
   - team
   - world: encounters, pvp
 
-  - nodes: towns, places, etc
-  - travel: random encounters
-     travel step: continue, back off, escape ?
-
-
-  - combat actions:
+Combat actions:
 
      - switch
      - attack
@@ -50,3 +53,21 @@ Modules:
   combat:   combat round rules
 
 
+
+
+Command reference:
+
+  * Universal commands:
+   - inv(entory)
+   - examine
+
+  * Wandering commands:
+   - say (.)
+   - tell (;)
+   - group (:) ?
+
+
+  * Combat commands:
+  - <attack name>
+  - use
+  - flee
