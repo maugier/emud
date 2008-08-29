@@ -14,7 +14,15 @@ login: do synchronous login stuff, check login validity, launch terminal
 process
 
 terminal: fork reception child, wait for incoming messages. Handle interaction
-with user.
+with user. runs terminal mode.
+
+  * terminal crash: have user wait ?
+
+combat: combat referee. receives initial poke states, handle combat commands
+and dispatch combat, reply with events.
+
+  * in case of combat crash: rollback poke status :)
+
 
 
 World model:
@@ -29,7 +37,7 @@ World model:
 
 User interaction:
 
-  - inventory
+  - inventory 
   - team
   - world: encounters, pvp
 
@@ -57,17 +65,12 @@ Modules:
 
 Command reference:
 
-  * Universal commands:
-   - inv(entory)
-   - examine
-
-  * Wandering commands:
+   - inventory
+   - use
+   - examine <poke>
    - say (.)
    - tell (;)
    - group (:) ?
+   - attack
 
 
-  * Combat commands:
-  - <attack name>
-  - use
-  - flee
