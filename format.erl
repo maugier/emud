@@ -9,7 +9,8 @@ color(yellow) 	-> "1;33";
 color(blue) 	-> "1;34";
 color(magenta) 	-> "1;35";
 color(cyan) 	-> "1;36";
-color(white) 	-> "1;37".
+color(white) 	-> "1;37";
+color(normal)	-> "0".
 
 ansi_escape(Code) -> [27, $[, Code, $m ].
 

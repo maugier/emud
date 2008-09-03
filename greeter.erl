@@ -2,12 +2,14 @@
 -export([answer/1, run/0]).
 
 
-message() -> format:parse(["Hello ", {color, red, "red"}, " ",
-				{color, blue, "blue"}]).
+message() -> ["Hello ", {color, red, "red"}, " ",
+				{color, blue, "blue"}].
 
+send(Socket, Msg) -> gen_tcp:send(Socket, format:parse(Msg)).
 
 answer(Socket) ->
-	gen_tcp:send(Socket, [message(), "\n"]),
+	send(Socket, [message(), "\n"]),
+	send(Socket, ui:monster(monsters:get(carapuce))),
 	ok.
 
 
