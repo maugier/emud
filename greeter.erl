@@ -1,5 +1,5 @@
 -module(greeter).
--export([answer/1, run/0]).
+-export([answer/1, run/0, stop/0]).
 
 
 message() -> ["Hello ", {color, red, "red"}, " ",
@@ -14,4 +14,6 @@ answer(Socket) ->
 
 
 run() ->
-	listener:start_link(1234, fun greeter:answer/1).
+	register(greeter, listener:start_link(1234, fun greeter:answer/1)).
+
+stop() -> exit(whereis(greeter), kill).
