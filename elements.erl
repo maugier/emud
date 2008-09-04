@@ -8,7 +8,11 @@ modifier(water, plant) -> weak;
 modifier(water, fire) -> strong;
 modifier(fire, plant) -> strong;
 modifier(plant, fire) -> weak;
+modifier(insect, plant) -> strong;
+modifier(flying, insect) -> strong;
+modifier(ground, flying) -> immune;
 
+modifier(E,E) -> weak;
 modifier(_,_) -> normal.
 
 color(water) -> cyan;
