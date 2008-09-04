@@ -1,17 +1,16 @@
 -module(mud_user).
 -author('Maxime Augier <max@xolus.net>').
 
--record(mud_user, { login, password, room=default_room }).
+-record(mud_user, { login, password, level, chars=[] }).
 
-
--export([init/0, create/2, login_ok/2, start/2]).
+-export([init/0, create/3, login_ok/2, start/2]).
 
 
 init() -> mnesia:create_table(mud_user, [{attributes, record_info(fields, mud_user)}]).
 
-create(Login, Password) ->
+create(Login, Password, Level) ->
 	T = fun() ->
-		mnesia:write(#mud_user{login=Login, password=Password})
+		mnesia:write(#mud_user{login=Login, password=Password, level=Level})
 	end,
 	mnesia:transaction(T).
 
@@ -29,55 +28,28 @@ login_ok(Login, Password) ->
 			string:equal(User#mud_user.password,Password)
 	end.
 
-print(Terminal, Text) -> Terminal ! { text, Text }.
-
 start(Login, Terminal) -> 
 	User = get_user(Login),
 	true = is_record(User, mud_user),
-	User#mud_user.room ! { join, self(), User#mud_user.login },
+	Terminal ! { prompt, user_prompt(User) },
+	Terminal ! { text, ["You are connected as ", {color, user_color(User), User#mud_user.login}, "\n"] },
 	loop(User, Terminal).
 
-loop(User, Terminal) ->
-	receive
-		quit ->
-			log:msg('INFO',"User ~s disconnecting",[User#mud_user.login]),
-			print(Terminal,"Goodbye!"),
-			User#mud_user.room ! { part, self(), User#mud_user.login },
-			exit(closing);
-		error ->
-			print(Terminal,"What ?"),
-			loop(User, Terminal);
+loop(User, Terminal) -> receive
 
-		look ->
-			print(Terminal, "Looking!"),
-			User#mud_user.room ! { look, self() },
-			loop(User, Terminal);
+	{ user_input, Command } ->
+		Terminal ! { text, ["You sent me: ", io_lib:format("~p", Command)] },
+		loop(User, Terminal);
 
-		{ look, Pid } ->
-			Pid ! { see, [ User#mud_user.login, " is standing here."] },
-			loop(User, Terminal);
+	_ -> loop(User, Terminal) 
+end.
 
-		{ see, Text } -> 
-			print(Terminal, Text),
-			loop(User, Terminal);
+user_prompt(User) -> case User#mud_user.level of
+	admin -> { color, red, [User#mud_user.login, "#"]};
+	_ -> { color, green, [User#mud_user.login, ">"]}
+end.
 
-		{ say, Text } ->
-			User#mud_user.room ! { say, self(), User#mud_user.login, Text },
-			loop(User, Terminal);
-		{ move, Room } ->
-			User#mud_user.room ! { part, self(), User#mud_user.login },
-			Room ! { join, self(), User#mud_user.login },
-			loop(User#mud_user{room=Room}, Terminal);
-		{ said, _Pid, Pname, Text } ->
-			print(Terminal, [Pname, " says: ", Text]),
-			loop(User, Terminal);
-		{ joined, Name } ->
-			print(Terminal, [Name, " has joined."]),
-			loop(User, Terminal);
-		{ left, Name } ->
-			print(Terminal, [Name, " has left."]),
-			loop(User, Terminal);
-		Other -> 
-			io:fwrite("Unknown message: ~p~n",[Other]),
-			loop(User, Terminal)
-	end.
+user_color(#mud_user{level=admin}) -> red;
+user_color(#mud_user{level=user}) -> green.
+
+

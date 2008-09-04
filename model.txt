@@ -1,22 +1,23 @@
 
 
-server : listen for connexions, spawn terminal processes with login
+* Generic mud stuff: game rules independant
+
+
+
+server : main stub, arranges startup
+listener: spawn script (login)
 
 login : get credentials or creates new user, start user, run terminal
-terminal : do prompting & async stuff
-mud_user : user process
-
-
-server: launch listener (with login)
-
-listener: spawn script (login)
-login: do synchronous login stuff, check login validity, launch terminal
-process
-
 terminal: fork reception child, wait for incoming messages. Handle interaction
 with user. runs terminal mode.
 
+mud_user : user management (not to be confused with player character)
+
   * terminal crash: have user wait ?
+
+* Game stuff:
+
+character: handles character-related stuff
 
 combat: combat referee. receives initial poke states, handle combat commands
 and dispatch combat, reply with events.

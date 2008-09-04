@@ -31,7 +31,7 @@ sender(Socket, User, Prompt) ->
 
 receiver(Socket, User) ->
 	Line = login:readline(Socket),
-	User ! parser:parse(Line),
+	User ! { user_input, parser:parse(Line) },
 	receiver(Socket, User).
 	
 display(Socket, Prompt, Text) ->
