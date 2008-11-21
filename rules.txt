@@ -1,0 +1,16 @@
+
+
+===
+Rules:
+===
+
+Status:
+  PSN: life dmg each round
+  STUN: systematic miss, fixed duration
+  PARA: miss chance, fixed duration ?
+
+
+- hit chance (std d20, precision)
+
+
+- dmg modifier (atk, dfs)

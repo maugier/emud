@@ -1,7 +1,7 @@
 -module(character).
 -author('Maxime Augier <max@xolus.net>').
 
--record(character, { name, room=default_room, team=[] }).
+-record(character, { name, room=default_room, team=[], objects=[] }).
 
 -export([init/0, create/1, start/2]).
 
