@@ -1,10 +1,10 @@
 -module(terminal).
 -author("Maxime Augier <max@xolus.net>").
 
--export([start/2]).
+-export([start_client/1]).
 
 
-start(Socket, Login) ->
+start_client(Socket) ->
 		Self = self(),
 		User = spawn_link(fun () -> mud_user:start(Login, Self) end),
 		spawn_link(fun () -> receiver(Socket, User) end),

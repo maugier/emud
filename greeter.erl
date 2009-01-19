@@ -1,5 +1,5 @@
 -module(greeter).
--export([answer/1, run/0, stop/0]).
+-export([start_client/1]).
 
 
 message() -> ["Hello ", {color, red, "red"}, " ",
@@ -7,13 +7,9 @@ message() -> ["Hello ", {color, red, "red"}, " ",
 
 send(Socket, Msg) -> gen_tcp:send(Socket, format:parse(Msg)).
 
-answer(Socket) ->
+start_client(Socket) ->
 	send(Socket, [message(), "\n"]),
 	send(Socket, ui:monster(monsters:get(carapuce))),
+	gen_tcp:close(Socket),
 	ok.
 
-
-run() ->
-	register(greeter, listener:start_link(1234, fun greeter:answer/1)).
-
-stop() -> exit(whereis(greeter), kill).
