@@ -41,6 +41,34 @@ User interaction:
   - inventory 
   - team
   - world: encounters, pvp
+ 
+Game flow:
+
+  - User connects. Listener spawns a terminal. Terminal handles reading lines,
+    outputting text async, changing prompt, etc... 
+
+    Terminal is a single process and directly executes submodes (to keep PID
+    consistent). Submode interacts with terminal object using lib functions.
+
+  - Login mode asks for credentials, asks for a character, then runs a server
+    for that character, and switches to Play mode with reference to char PID.
+
+  - Char server handles world interaction
+
+  - Play mode sends commands to player server, etc etc.
+  
+  - Char servers negociate between themselves when they should enter combat
+    mode. A Combat process is spawned, then Terminals switch to combat mode
+
+  - Combat arbiters combat. If successful, state is commited to storage.
+ 
+
+ Crash behaviour:
+
+   User server crashes -> restart with last good known state. If does not
+   work, log an error and panic.
+
+   If Terminal crashes -> disconnect the user, let him try again ?
 
 Combat actions:
 
