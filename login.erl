@@ -1,29 +1,34 @@
 -module(login).
 -author("Maxime Augier <max@xolus.net>").
 
--export([start/1, readline/1]).
+-export([start/1]).
 
+print(S,L) -> terminal:printline(S,L).
+read(S) -> terminal:readline(S).
 
-readline(Socket) ->
-	{ok, Packet} = gen_tcp:recv(Socket, 0),
-	lists:delete(13, lists:delete(10, Packet)).  % remove CR & LF
-		
+vsn_info() ->
+	["Welcome to ", world:info(server_name), " running EMud v0.1 !\n"].
 
-start(Socket) ->
-	gen_tcp:send(Socket, "login: "),
-	User = readline(Socket),
-	case User of 
-	 %"new" -> create_user(Socket);
-	     _ -> gen_tcp:send(Socket, "password: "),
-		  Password = readline(Socket),
-		  log:msg('INFO', "Login [~s] pass [~s]", [User, Password]),
-		  case mud_user:login_ok(User, Password) of
-		  	false -> bye(Socket);
-			true -> terminal:start(Socket, User)
-		  end
+start(S) ->
+	print(S,vsn_info()),
+	print(S,"(enter \"new\" for new account)\nlogin: "),
+	Login = read(S),
+	case Login of 
+		"new" -> new(S);
+		_ -> pass(S,Login)
 	end.
+
+new(S) ->
+	print(S,"Sorry, signups are closed for now. Try again later :)\n"),
+	signup_closed.
+
+pass(S,Login) ->
+	print(S,"password: "),
+	Pass = read(S),
+	log:msg('INFO', "Login accepted for [~s/~s]",[Login,Pass]),
+	nothing_to_do.
 
 bye(Socket) ->
 	log:msg('WARN',"Login rejected on ~p",[Socket]),
 	gen_tcp:send(Socket, "Sorry, bad login\n"),
-	ok.
+	incorrect_login.

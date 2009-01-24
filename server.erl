@@ -6,7 +6,8 @@
 
 -define(PORT, 1234).
 -define(HOPTS, "Hello, asshole !").
--define(HANDLER, fun(S) -> greeter:start_client(S,?HOPTS) end).
+%-define(HANDLER, fun(S) -> greeter:start_client(S,?HOPTS) end).
+-define(HANDLER, fun login:start/1).
 -define(LTS, 5).
 
 init(_) ->

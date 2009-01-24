@@ -1,14 +1,24 @@
 -module(terminal).
 -author("Maxime Augier <max@xolus.net>").
 
+-export([readline/1, printline/2]).
 -export([start_client/1]).
+
+readline(Socket) ->
+        {ok, Packet} = gen_tcp:recv(Socket, 0),
+	lists:delete(13, lists:delete(10, Packet)).  % remove CR & LF
+
+printline(Socket, Line) ->
+	gen_tcp:send(Socket, format:parse(Line)).
+
+
 
 
 start_client(Socket) ->
 		Self = self(),
-		User = spawn_link(fun () -> mud_user:start(Login, Self) end),
+		User = spawn_link(fun () -> mud_user:start(Self) end),
 		spawn_link(fun () -> receiver(Socket, User) end),
-		log:msg('INFO', "Login accepted for [~s]",[Login]),
+		log:msg('INFO', "Login accepted for [~s]",["prout"]),
 		self() ! { text, "Welcome to EMud 0.1 :)" },
 		sender(Socket, User, default_prompt()).
 

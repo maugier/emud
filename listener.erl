@@ -34,6 +34,7 @@ handle_cast(worker_ok,State) ->
 handle_info(_, State) -> { noreply, State }.
 
 handle(State, Parent) ->
+	log:msg('DEBUG', "Spawned listener thread ~p", [self()]),
 	#state{socket=LSock, handler=Handler} = State,
 	{ok, Sock} = gen_tcp:accept(LSock),
 	gen_server:cast(Parent, worker_ok),
@@ -46,4 +47,6 @@ handle(State, Parent) ->
 terminate(_Reason, State) ->
 	ok = gen_tcp:close(State#state.socket).
 
-code_change(_Old,State,_Extra) -> { ok, State }.
+code_change(_Old,State,_Extra) -> 
+	log:msg('NOTICE', "~p upgraded to ~p",[?MODULE, module_info()]),
+	{ ok, State }.
