@@ -9,7 +9,8 @@ read() -> terminal:read().
 vsn_info() ->
 	["Welcome to ", world:info(server_name), " running EMud v0.1 !\n"].
 
-start(_S) ->
+start(S) ->
+	terminal:init(S),
 	print(vsn_info()),
 	print("(enter \"new\" for new account)\nlogin: "),
 	Login = read(),

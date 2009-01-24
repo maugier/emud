@@ -1,8 +1,13 @@
 -module(terminal).
 -author("Maxime Augier <max@xolus.net>").
 
--export([read/0, read/1, print/1, print/2, info/1]).
+-export([init/1, read/0, read/1, print/1, print/2, info/1]).
+-export([list/0]).
 -export([start_client/1]).
+
+init(Socket) ->
+	put(emud_socket,Socket),
+	ok = pg2:join(emud_terminal, self()).
 
 read() -> read(get(emud_socket)).
 read(Socket) ->
@@ -16,6 +21,7 @@ print(Socket, Line) ->
 
 info(peer) -> { ok, Peer } = inet:peername(get(emud_socket)), Peer.
 
+list() -> pg2:get_members(emud_terminal).
 
 
 start_client(Socket) ->

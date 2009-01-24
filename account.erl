@@ -65,7 +65,10 @@ code_change(_Old,St,_Ex) -> { ok, St }.
 save() -> gen_server:cast(account, save).
 
 new(Login, Pass, Level) ->
-	gen_server:call(account, {new, Login, Pass, Level}).	
+	case gen_server:call(account, {new, Login, Pass, Level}) of
+		true -> ok;
+		false -> { error, exists, Login }
+	end.
 
 login(Log,Pass) ->
 	gen_server:call(account, {login, Log, Pass}).

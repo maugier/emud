@@ -40,7 +40,6 @@ handle(State, Parent) ->
 	gen_server:cast(Parent, worker_ok),
 	{ok, Peer} = inet:peername(Sock),
 	log:msg('DEBUG', "Connection accepted from ~p",[Peer]),
-	put(emud_socket, Sock),
 	Exit = (catch Handler(Sock)),
 	log:msg('DEBUG', "Connection terminating from ~p (~p)",[Peer,Exit]),
 	Exit.

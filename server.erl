@@ -12,7 +12,8 @@
 
 init(_) ->
 	log:msg('INFO', "Server initializing"),
-	ok = mnesia:start(),
+	%ok = mnesia:start(),
+	pg2:create(emud_terminal),
 	{ ok, {{one_for_all, 5, 60}, [ 
 		listener(),
 		account()
