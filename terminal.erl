@@ -1,14 +1,16 @@
 -module(terminal).
 -author("Maxime Augier <max@xolus.net>").
 
--export([readline/1, printline/2]).
+-export([read/0, read/1, print/1, print/2]).
 -export([start_client/1]).
 
-readline(Socket) ->
+read() -> read(get(emud_socket)).
+read(Socket) ->
         {ok, Packet} = gen_tcp:recv(Socket, 0),
 	lists:delete(13, lists:delete(10, Packet)).  % remove CR & LF
 
-printline(Socket, Line) ->
+print(Line) -> print(get(emud_socket),Line).
+print(Socket, Line) ->
 	gen_tcp:send(Socket, format:parse(Line)).
 
 
