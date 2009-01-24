@@ -19,11 +19,45 @@ start(_S) ->
 	end.
 
 new() ->
-	print("Sorry, signups are closed for now. Try again later :)\n"),
-	signup_closed.
+	case world:info(signup) of false ->
+		print(["Sorry, signups are closed for now.\n",
+		"Try again later :)\n"]),
+		signup_closed;
+
+	_ -> 
+		print("Desired username: "),
+		User = read(),
+
+		case User of "" -> 
+			print("No account ? ok, quitting.\n"),
+			no_account;
+
+		_ -> case account:exists(User) of true ->
+			print("Sorry, already taken !\n"),
+			new();
+		_ -> 
+			print("Password: "),
+			Pass = read(),
+			account:new(User,Pass,user),
+			{ok, Acc} = account:login(User,Pass),
+			menu:start(Acc)
+		end 
+	end 
+end.
+
+
+
+
+
 
 pass(Login) ->
 	print("password: "),
 	Pass = read(),
-	log:msg('INFO', "Login accepted for [~s/~s]",[Login,Pass]),
-	nothing_to_do.
+	case account:login(Login,Pass) of
+		{error, login_failed} ->
+			print("Login incorrect.\n"),
+			login_incorrect;
+		{ok, Account} ->
+			log:msg('INFO', "Login accepted for [~s]",[Login]),
+			menu:start(Account)
+	end.

@@ -30,7 +30,7 @@ listener() ->
 
 account() ->
 	{ account,
-	  { account, start_link, [] },
+	  { account, start_link, [[]] },
 	  permanent,
 	  5,
 	  worker,
