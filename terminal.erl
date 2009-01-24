@@ -1,7 +1,7 @@
 -module(terminal).
 -author("Maxime Augier <max@xolus.net>").
 
--export([read/0, read/1, print/1, print/2]).
+-export([read/0, read/1, print/1, print/2, info/1]).
 -export([start_client/1]).
 
 read() -> read(get(emud_socket)).
@@ -13,6 +13,8 @@ print(Line) -> print(get(emud_socket),Line).
 print(Socket, Line) ->
 	gen_tcp:send(Socket, format:parse(Line)).
 
+
+info(peer) -> { ok, Peer } = inet:peername(get(emud_socket)), Peer.
 
 
 

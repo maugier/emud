@@ -46,10 +46,6 @@ new() ->
 end.
 
 
-
-
-
-
 pass(Login) ->
 	print("password: "),
 	Pass = read(),
@@ -58,6 +54,7 @@ pass(Login) ->
 			print("Login incorrect.\n"),
 			login_incorrect;
 		{ok, Account} ->
-			log:msg('INFO', "Login accepted for [~s]",[Login]),
+			log:msg('INFO', "Login accepted for [~s] from [~p]",
+			[Login, terminal:info(peer)]),
 			menu:start(Account)
 	end.
