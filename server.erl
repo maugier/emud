@@ -14,7 +14,8 @@ init(_) ->
 	log:msg('INFO', "Server initializing"),
 	ok = mnesia:start(),
 	{ ok, {{one_for_all, 5, 60}, [ 
-		listener() 
+		listener(),
+		account()
 	] }}.
 	
 
@@ -27,3 +28,11 @@ listener() ->
 	  [listener]
 	}.
 
+account() ->
+	{ account,
+	  { account, start_link, [] },
+	  permanent,
+	  5,
+	  worker,
+	  [account]
+	}.
