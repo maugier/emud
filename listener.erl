@@ -14,54 +14,36 @@ start_link(Args) -> gen_server:start_link(?MODULE, Args, []).
 -record(state, { socket, handler }).
 
 
-init( { Port, Handler } ) ->
+init( { Port, Handler, PNum } ) ->
 	{ ok, LSocket } = gen_tcp:listen(Port, ?TCP_OPTIONS),
+	State = #state{ socket=LSocket, handler=Handler},
 	log:msg('INFO', "Listening on port ~p", [Port]),
-	{ ok, #state{ socket=LSocket, handler=Handler }, 0 }.
+	lists:duplicate(PNum, spawn_child(State)),
+	{ ok, State }.
 
-handle_call(_,_,State) -> { reply, not_impl, State, 0 }.
-
-handle_cast(_,State) -> { noreply, State, 0 }.
-
-handle_info(timeout, State) -> 
-	Handler = State#state.handler,
-	{ ok, Socket } = gen_tcp:accept(State#state.socket),
-	log:msg('INFO', "Accepted client ~p, forking ~p", [Socket,Handler]),
-	spawn(fun () -> handle(Socket, Handler) end),
-	{ noreply, State, 0 }.
-
-handle(Socket, Handler) ->
+spawn_child(State) ->
 	Self = self(),
-	spawn_link(fun () -> reaper(Self, Socket) end),
-	receive reaper_ready -> 
-		Handler:start_client(Socket)
-	end.
+	spawn(fun () -> handle(State,Self) end).
+
+handle_call(_,_,State) -> { reply, not_impl, State }.
+
+handle_cast(worker_ok,State) -> 
+	spawn_child(State),
+	{ noreply, State }.
+
+handle_info(_, State) -> { noreply, State }.
+
+handle(State, Parent) ->
+	#state{socket=LSock, handler=Handler} = State,
+	{ok, Sock} = gen_tcp:accept(LSock),
+	gen_server:cast(Parent, worker_ok),
+	{ok, Peer} = inet:peername(Sock),
+	log:msg('INFO', "Connection accepted from ~p",[Peer]),
+	Exit = (catch Handler(Sock)),
+	log:msg('INFO', "Connection terminating from ~p (~p)",[Peer,Exit]),
+	Exit.
 
 terminate(_Reason, State) ->
 	ok = gen_tcp:close(State#state.socket).
-
-
-
-%loop(LSocket, Fun) ->
-%	{ ok, Socket } = gen_tcp:accept(LSocket),	
-%	_Pid = spawn(fun () -> handle(Socket, Fun) end),
-%	log:msg('INFO', "Accepted connection from ~p", [Socket]),
-%	loop(LSocket, Fun).
-
-reaper(Parent,Socket) ->
-	log:msg('DEBUG', "Starting reaper for ~p", [Socket]),
-	process_flag(trap_exit, true),
-	Parent ! reaper_ready,
-	receive 
-		{ 'EXIT', Parent, _Reason } ->
-			log:msg('INFO', "Client ~p died, reaping socket ~p",
-			[Parent, Socket]),
-			gen_tcp:close(Socket);
-		Whatever -> 
-			log:msg('WARN', "Unknown message to reaper ~p",
-				[Whatever])
-	end.
-
-
 
 code_change(_Old,State,_Extra) -> { ok, State }.
