@@ -7,6 +7,14 @@ prio_color('INFO') -> cyan;
 prio_color('NOTICE') -> green;
 prio_color('WARN') -> yellow;
 prio_color('ERR') -> red.
+prio_color('CRIT') -> red.
+
+prio('DEBUG')	-> 0;
+prio('INFO')	-> 1;
+prio('NOTICE')	-> 2;
+prio('WARN')	-> 3;
+prio('ERR')	-> 4;
+prio('CRIT')	-> 5;
 
 msg(Msg) ->
 	msg('DEBUG', Msg).

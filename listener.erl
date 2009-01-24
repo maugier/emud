@@ -39,10 +39,10 @@ handle(State, Parent) ->
 	{ok, Sock} = gen_tcp:accept(LSock),
 	gen_server:cast(Parent, worker_ok),
 	{ok, Peer} = inet:peername(Sock),
-	log:msg('INFO', "Connection accepted from ~p",[Peer]),
+	log:msg('DEBUG', "Connection accepted from ~p",[Peer]),
 	put(emud_socket, Sock),
 	Exit = (catch Handler(Sock)),
-	log:msg('INFO', "Connection terminating from ~p (~p)",[Peer,Exit]),
+	log:msg('DEBUG', "Connection terminating from ~p (~p)",[Peer,Exit]),
 	Exit.
 
 terminate(_Reason, State) ->
