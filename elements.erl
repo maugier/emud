@@ -3,7 +3,7 @@
 
 show(E) -> { color, color(E), atom_to_list(E) }.
 
-% elements(Attack, Defense) -> strong|normal|weak|immune
+%% @spec modifier(Attack::element(), Defense::element()) -> strong|normal|weak|immune
 modifier(water, plant) -> weak;
 modifier(water, fire) -> strong;
 modifier(fire, plant) -> strong;

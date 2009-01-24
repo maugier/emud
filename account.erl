@@ -6,7 +6,7 @@
 
 -export([start_link/1, save/0, new/3, login/2, get/2, exists/1]).
 
--record(account, { user, pass, level, chars = [] }).
+-record(account, { user, pass, level }).
 
 -define(ACCOUNT_FILE, "account.dat").
 
