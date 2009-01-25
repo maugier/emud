@@ -1,6 +1,6 @@
 -module(monster).
 -include("game.hrl").
--export([getStat/2, add_mod/2, clear_mod/2]).
+-export([getStat/2, get_color/1, add_mod/2, clear_mod/2]).
 
 
 get_int_mod(Mods, Key) ->
@@ -18,6 +18,11 @@ getStat(M = #monster{}, Stat) -> case Stat of
 	life	-> M#monster.life;
 	speed	-> M#monster.speed;
 	precision -> M#monster.precision
+end.
+
+get_color(M) -> case M#monster.color of
+	undefined -> element:color(M#monster.element);
+	Other 	  -> Other
 end.
 
 
