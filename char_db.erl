@@ -7,8 +7,6 @@
 -export([init/1, handle_call/3, terminate/2]).
 -export([start_link/1, save/0, save/1, load/1, list/1, new/2]).
 
--record(character, { name, owner, room=default_room, team=[], objects=[] }).
-
 -define(CHARS_FILE, "char_db.dat").
 
 start_link(A) ->
