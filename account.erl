@@ -40,6 +40,7 @@ handle_call({new,Log,Pass,Lvl}, _From, Tab) ->
 
 	Res = ets:insert_new(Tab, 
 			#account{ user=Log, pass=Pass, level=Lvl}),
+	do_save(Tab),
 	{ reply, Res, Tab };
 
 handle_call({login,Log,Pass}, _From, Tab) ->
