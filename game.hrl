@@ -12,5 +12,6 @@
 
 % used to store temporary modifiers
 -record(fighting_monster, { monster, modifiers }).
+-record(character,  { name, owner, room=default_room, team=[], objects=[] }).
 
 % vim:set syntax=erlang
