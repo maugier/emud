@@ -14,8 +14,8 @@
 -define(LTS, 5).
 
 start() ->
-	{ok, Pid} = supervisor:start_link(server,[]),
-	global:register_name(emud_server, Pid),
+	{ok, Pid} = supervisor:start_link({local, emud_server},server,[]),
+	unlink(Pid),
 	{ok, Pid}.
 
 stop() -> 
