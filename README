@@ -1,0 +1,21 @@
+Quickstart (local server in foreground):
+
+
+1) Edit world.erl, adjust world global parameters
+2) Edit server.erl, change port if needed
+3) In same directory, launch erlang console:
+
+ $ erl
+
+4) At erlang console, boot single server config:
+
+ 1> server:start().
+
+5) Connect to local tcp port with netcat/telnet/whatever, enjoy
+
+6) If needed, shutdown the server cleanly with:
+
+ 2> server:stop().
+ 3> halt().
+
+
