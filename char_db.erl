@@ -5,7 +5,7 @@
 -include("game.hrl").
 
 -export([init/1, handle_call/3, terminate/2]).
--export([start_link/1, save/0, save/1, load/1, list/1, new/2]).
+-export([start_link/1, save/0, save/1, load/1, list/1, new/2, list/0]).
 
 -define(CHARS_FILE, "char_db.dat").
 
@@ -22,7 +22,7 @@ init(_) ->
 		{error, {read_error,{file_error,_,enoent}}} ->
 			log:msg('INFO',
 			"No character file found. Creating new."),
-			Tab = ets:new(account, [set,private,{keypos,2}]),
+			Tab = ets:new(?MODULE, [set,private,{keypos,2}]),
 			{ok, Tab}
 	end.
 
@@ -44,17 +44,21 @@ handle_call({load,Name},_From,State) ->
 	end,
 	{reply, R, State};
 
+handle_call(list,_From,State) ->
+	{reply, ets:tab2list(State), State};
+
 handle_call({list,Owner},_From,State) ->
-	{reply, ets:match(State, #character{owner=Owner}), State}.
+	{reply, ets:match(State, #character{name='$1', owner=Owner}), State}.
 
 
 terminate(_Reason,State) ->
 	do_save(State), ok.
 
-save() -> gen_server:call(character,save).
-save(C) -> gen_server:call(character, {save,C}).
-load(Name) -> gen_server:call(character, {load, Name}).
-list(Owner) -> gen_server:call(character, {list, Owner}).
+save() -> gen_server:call(?MODULE,save).
+save(C) -> gen_server:call(?MODULE, {save,C}).
+load(Name) -> gen_server:call(?MODULE, {load, Name}).
+list(Owner) -> gen_server:call(?MODULE, {list, Owner}).
+list() -> gen_server:call(?MODULE, list).
 
 new(Owner,Name) ->
 	Char = #character{name=Name,owner=Owner},
