@@ -7,4 +7,5 @@ info(server_name) -> "PoKeMuD";
 info(banner) -> ["Welcome to ", {color,red,"PoKeMuD"}, ", the ",
 "experimental Erlang MUD !\n"];
 info(version) -> "1.0";
+% Open signups ?
 info(signup) -> true.

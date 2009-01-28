@@ -11,6 +11,7 @@
 -define(HOPTS, "Hello, asshole !").
 %-define(HANDLER, fun(S) -> greeter:start_client(S,?HOPTS) end).
 -define(HANDLER, fun login:start/1).
+% Number of tcp listeners
 -define(LTS, 5).
 
 start() ->
