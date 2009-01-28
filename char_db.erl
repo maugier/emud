@@ -5,6 +5,7 @@
 -include("game.hrl").
 
 -export([init/1, handle_call/3, terminate/2]).
+-export([call/1]).
 -export([start_link/1, save/0, save/1, load/1, list/1, new/2, list/0]).
 
 -define(CHARS_FILE, "char_db.dat").
@@ -16,7 +17,7 @@ init(_) ->
 	case ets:file2tab(?CHARS_FILE) of
 		{ok, Tab} ->
 			log:msg('INFO',
-			"Characters database loaded (~p accounts)",
+			"Characters database loaded (~p chars)",
 			[ets:info(Tab,size)]),
 			{ok, Tab};
 		{error, {read_error,{file_error,_,enoent}}} ->
@@ -29,6 +30,14 @@ init(_) ->
 
 do_save(State) ->
 	ets:tab2file(State,?CHARS_FILE).
+
+handle_call({exists,Name},_From, State) ->
+	{ reply, 
+		case ets:lookup(State, Name) of
+			[] -> false;
+			_ -> true
+		end,
+	  State };
 
 handle_call(save,_From,State) ->
 	do_save(State),
@@ -48,7 +57,9 @@ handle_call(list,_From,State) ->
 	{reply, ets:tab2list(State), State};
 
 handle_call({list,Owner},_From,State) ->
-	{reply, ets:match(State, #character{name='$1', owner=Owner}), State}.
+	{reply, lists:concat(
+		ets:match(State, #character{name='$1', owner=Owner}))
+	, State}.
 
 
 terminate(_Reason,State) ->
@@ -60,7 +71,11 @@ load(Name) -> gen_server:call(?MODULE, {load, Name}).
 list(Owner) -> gen_server:call(?MODULE, {list, Owner}).
 list() -> gen_server:call(?MODULE, list).
 
+
+call(Msg) -> gen_server:call(?MODULE, Msg).
+
 new(Owner,Name) ->
 	Char = #character{name=Name,owner=Owner},
 	save(Char),
+	log:msg('NOTICE',"[~s] created character [~s]", [Name, Owner]),
 	Char.

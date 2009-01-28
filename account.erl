@@ -67,7 +67,9 @@ save() -> gen_server:cast(account, save).
 
 new(Login, Pass, Level) ->
 	case gen_server:call(account, {new, Login, Pass, Level}) of
-		true -> ok;
+		true -> 
+			log:msg('NOTICE', "Account created: [~s]", [Login]),
+			ok;
 		false -> { error, exists, Login }
 	end.
 
