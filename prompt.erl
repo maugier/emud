@@ -11,10 +11,13 @@ interact(Ctrl) ->
 
 loop(Ctrl,Sock,Prpt) ->
 	inet:setopts(Sock,[{active,once}]),
+	log:msg('DEBUG',"tcp loop ok",[]),
 	receive
 		{tcp,Sock,Packet} ->
 			Line = terminal:stripln(Packet),
-			Ctrl ! {input, Line};
+			Ctrl ! {input, Line},
+			display(Sock,Prpt,[]),
+			loop(Ctrl,Sock,Prpt);
 		{tcp_closed,Sock} ->
 			conn_closed;
 		{prompt,NP} ->

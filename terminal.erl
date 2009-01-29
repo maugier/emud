@@ -32,7 +32,9 @@ read(Socket) ->
 print(Line) -> print(get(emud_socket),Line).
 
 print(Socket, Line) ->
-	gen_tcp:send(Socket, format:parse(Line)).
+	Data = format:parse(Line),
+	log:msg('DEBUG', "send: ~p", [Data]),
+	gen_tcp:send(Socket, Data).
 
 print_prompt(Line,Prompt) ->
 	print([Line,"\n",Prompt,[255,249]]).

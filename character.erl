@@ -18,18 +18,29 @@ init({Name,Ctrl}) ->
 	log:msg('DEBUG', "Character [~s] starting", [Name]),
 	{ok, Char} = char_db:load(Name),
 	pg2:join(all_characters, self()),
-	room:call(default_room, join),
+	{joined, R} = room:call(Char#character.room, join),
+	show_room(Ctrl,R),
 	{ok, {Char, Ctrl}}.
 
-handle_call({get,name}, _From, {Char,_}) ->
-	{ok, Char#character.name, Char}.
+handle_call({get,name}, _From, S={Char,_}) ->
+	{reply, Char#character.name, S}.
 
 handle_cast({say, From, Text}, {Char,Ctrl}) ->
-	Ctrl ! {say, From, Text},
-	{ok, {Char,Ctrl}};
+	FromName = case self of
+		From -> {color, green, Char#character.name};
+		_    -> {color, blue, gen_server:call(From,{get,name}
+	case self() of From -> 
+		Ctrl ! {display, [{color, green, "You "},"say: ",{color,green,
+		Text}]};
+	_ ->
+		FromName = gen_server:call(From,{get,name}),
+		Ctrl ! {display, [{color, red, FromName}, " says: ", {color, blue, Text}]}
+	end,
+	{noreply, {Char,Ctrl}};
 
-handle_cast({join,R},{_Char,Ctrl}) ->
-	Ctrl ! {display, ["Welcome to", {color, green, R#room.title}]};
+handle_cast({join,R},S={_,Ctrl}) ->
+	show_room(Ctrl,R),
+	{reply, S};
 
 handle_cast(shutdown,S) -> 
 	{stop, shutdown, S}.
@@ -40,11 +51,15 @@ handle_info({input,Text},{Chr,_}=S) ->
 	{noreply, S}.
 
 terminate(Reason, {Char,_}) ->
-	gen_server:call(Char#character.room, leave),
-	log:msg('DEBUG', "Character [~s] terminating: ~s",
+	room:call(Char#character.room, leave),
+	log:msg('DEBUG', "Character [~s] terminating: ~p",
 		[Char#character.name, Reason]),
 	char_db:save(Char).
 
 code_change(_O,S,_E) ->
         {ok, S}.
+
+
+show_room(Ctrl,R) ->
+	Ctrl ! { display, ["Welcome to ", {color, green, R#room.description}]}.
 

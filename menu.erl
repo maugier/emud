@@ -59,4 +59,4 @@ play(Name) ->
 	print("Cool, your character has been started\n"),
 	read(),
 	prompt:interact(Pid),
-	gen_server:cast(Pid, shutdown).
+	gen_server:cast(Pid, lost_terminal).

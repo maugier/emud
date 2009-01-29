@@ -10,31 +10,33 @@ code_change/3]).
 
 
 call(Name,Call) ->
-	gen_server:call({global, Name}, Call).
+	gen_server:call({global, {room,Name}}, Call).
 cast(Name,Cast) ->
-	gen_server:cast({global, Name}, Cast).
+	gen_server:cast({global, {room,Name}}, Cast).
 
-rn(R) -> {global,R#room.title}.
+rn(R) -> {room,R#room.title}.
 
 start_link(R) ->
-	gen_server:start({global, rn(R)},?MODULE,R,[]).
+	gen_server:start({global, rn(R) },?MODULE,R,[]).
 
 init(R) -> 
-	pg2:create({room, rn(R)}),
+	pg2:create(rn(R)),
 	log:msg('DEBUG', "Loading room <~s>", [R#room.title]),
 	{ ok, R}.
 
-handle_call(join,From,R) ->
-	gen_server:cast(From, {join, R}),
-	pg2:join({room, rn(R)}, From),	
-	{ noreply, R};
+handle_call(get_name,_From,R) ->
+	{ reply, R#room.description, R };
 
-handle_call(leave,From,R) ->
-	pg2:leave({room, rn(R)}, From),
-	{ noreply, R}.
+handle_call(join,{From,_},R) ->
+	pg2:join(rn(R), From),	
+	{ reply, {joined, R}, R};
+
+handle_call(leave,{From,_},R) ->
+	pg2:leave(rn(R), From),
+	{ reply, {left,R}, R}.
 
 handle_cast({roomcast,Msg},R) ->
-	log:msg('DEBUG', "Roomcast <~s>: ~s", [rn(R),Msg]),
+	log:msg('DEBUG', "Roomcast <~p>: ~p", [R#room.title,Msg]),
 	Fun = fun (Pid) -> gen_server:cast(Pid,Msg) end, 
 	lists:map(Fun, pg2:get_members(rn(R))),
 	{ noreply, R}.
@@ -43,7 +45,7 @@ handle_info({'DOWN',_,process,_Pid,_R}, R) ->
 	gen_server:cast(self(), {msg, "Player has disconnected."}),
 	{ noreply, R}.
 
-terminate(_Reason,{R,_}) -> 
+terminate(_Reason,R) -> 
 	pg2:delete(rn(R)),
 	log:msg('DEBUG', "Room <~s> terminating", [R#room.title]),
 	ok.
