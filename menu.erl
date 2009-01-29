@@ -5,18 +5,24 @@
 -export([charlist/1]).
 
 print(P) -> terminal:print(P).
+print_prompt(L,P) -> terminal:print_prompt(L,P).
 read() -> terminal:read().
 
 start(Account) ->
 	Clist = char_db:list(account:get(Account,user)),
-	print(["--==[ ",world:info(server_name)," ]==--\n",
+	print_prompt(["--==[ ",world:info(server_name)," ]==--\n",
 		world:info(banner),
 		"Pick your character: \n",
-		charlist(Clist)]),
+		charlist(Clist)], "> "),
 	Char = read(),
 	case Char of 
 		"n" -> create_char(Account);
-		_ -> print("What?\n"), start(Account)
+		Num -> case string:to_integer(Num) of
+			
+			{error,_} ->	print("What?\n"),
+					start(Account);
+			{Int,_}   ->    play(lists:nth(Int,Clist))
+		end
 	end.
 
 charlist([]) ->
@@ -29,7 +35,7 @@ charlist([C|CL], N) ->
 	["  (",io_lib:format("~w",[N]),") ", C, "\n" | charlist(CL,N+1) ].
 
 create_char(Account) ->
-	print("What is the name of your new character ?\nname: "),
+	print_prompt("What is the name of your new character ?", "name:"),
 	CharName = read(),
 	case char_db:call({exists, CharName}) of
 		true -> 
@@ -52,4 +58,5 @@ play(Name) ->
 	link(Pid),
 	print("Cool, your character has been started\n"),
 	read(),
+	prompt:interact(Pid),
 	gen_server:cast(Pid, shutdown).

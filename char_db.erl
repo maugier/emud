@@ -4,7 +4,7 @@
 
 -include("game.hrl").
 
--export([init/1, handle_call/3, terminate/2]).
+-export([init/1, handle_call/3, terminate/2, code_change/3]).
 -export([call/1]).
 -export([start_link/1, save/0, save/1, load/1, list/1, new/2, list/0]).
 
@@ -80,3 +80,8 @@ new(Owner,Name) ->
 	save(Char),
 	log:msg('NOTICE',"[~s] created character [~s]", [Name, Owner]),
 	Char.
+
+
+code_change(_O,S,_E) ->
+        {ok, S}.
+

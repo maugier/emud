@@ -30,8 +30,8 @@ loop(Ctrl,Sock,Prpt) ->
 			loop(Ctrl,Sock,Prpt)
 	end.
 
-display(S,P,T) ->
-	gen_tcp:send(S, format:parse([T,"\n",P,[255,249]])).
+display(_S,P,T) ->
+	terminal:print_prompt(T,P).
 
 default_prompt() -> [
 	{color, red, "PoKe"},

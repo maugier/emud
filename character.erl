@@ -6,7 +6,7 @@
 -include("game.hrl").
 
 -export([start_link/1, init/1, handle_call/3, handle_cast/2, 
-handle_info/2, terminate/2]).
+handle_info/2, terminate/2, code_change/3]).
 
 
 start_link(Name) ->
@@ -18,7 +18,7 @@ init({Name,Ctrl}) ->
 	log:msg('DEBUG', "Character [~s] starting", [Name]),
 	{ok, Char} = char_db:load(Name),
 	pg2:join(all_characters, self()),
-	gen_server:call({room, Char#character.room}, join),
+	room:call(default_room, join),
 	{ok, {Char, Ctrl}}.
 
 handle_call({get,name}, _From, {Char,_}) ->
@@ -35,7 +35,7 @@ handle_cast(shutdown,S) ->
 	{stop, shutdown, S}.
 
 handle_info({input,Text},{Chr,_}=S) ->
-	gen_server:cast(Chr#character.room, 
+	room:cast(Chr#character.room, 
 		{ roomcast, { say, self(), Text }}),
 	{noreply, S}.
 
@@ -45,4 +45,6 @@ terminate(Reason, {Char,_}) ->
 		[Char#character.name, Reason]),
 	char_db:save(Char).
 
+code_change(_O,S,_E) ->
+        {ok, S}.
 

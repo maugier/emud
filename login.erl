@@ -4,6 +4,7 @@
 -export([start/1]).
 
 print(L) -> terminal:print(L).
+print_prompt(L,P) -> terminal:print_prompt(L,P).
 read() -> terminal:read().
 
 vsn_info() ->
@@ -12,7 +13,7 @@ vsn_info() ->
 start(S) ->
 	terminal:init(S),
 	print(vsn_info()),
-	print("(enter \"new\" for new account)\nlogin: "),
+	print_prompt("(enter \"new\" for new account)","login: "),
 	Login = read(),
 	case Login of 
 		"new" -> new();
@@ -26,7 +27,7 @@ new() ->
 		signup_closed;
 
 	_ -> 
-		print("Desired username: "),
+		print_prompt("","Desired username: "),
 		User = read(),
 
 		case User of "" -> 
@@ -37,7 +38,7 @@ new() ->
 			print("Sorry, already taken !\n"),
 			new();
 		_ -> 
-			print("Password: "),
+			print_prompt("","Password: "),
 			Pass = read(),
 			account:new(User,Pass,user),
 			{ok, Acc} = account:login(User,Pass),
@@ -48,7 +49,7 @@ end.
 
 
 pass(Login) ->
-	print("password: "),
+	print_prompt("","password: "),
 	Pass = read(),
 	case account:login(Login,Pass) of
 		{error, login_failed} ->
