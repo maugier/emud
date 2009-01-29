@@ -24,8 +24,8 @@ init({Name,Ctrl}) ->
 handle_call({get,name}, _From, {Char,_}) ->
 	{ok, Char#character.name, Char}.
 
-handle_cast({say, Text}, {Char,Ctrl}) ->
-	Ctrl ! {say, Text},
+handle_cast({say, From, Text}, {Char,Ctrl}) ->
+	Ctrl ! {say, From, Text},
 	{ok, {Char,Ctrl}};
 
 handle_cast(shutdown,S) -> 
