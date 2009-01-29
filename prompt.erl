@@ -20,6 +20,10 @@ loop(Ctrl,Sock,Prpt) ->
 		{prompt,NP} ->
 			display(Sock,NP,[]),
 			loop(Ctrl,Sock,NP);
+		{display, Text} ->
+			display(Sock,Prpt,Text),
+			loop(Ctrl,Sock,Prpt);
+	
 		Other ->
 			log:msg('DEBUG',"Unknown message in ~p:~p",
 				[?MODULE,Other]),

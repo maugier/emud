@@ -16,6 +16,7 @@ init(R) ->
 	{ ok, R}.
 
 handle_call(join,From,R) ->
+	gen_server:cast(From, {join, R}),
 	pg2:join(rn(R), From),	
 	{ noreply, R};
 
@@ -24,6 +25,7 @@ handle_call(leave,From,R) ->
 	{ noreply, R}.
 
 handle_cast({roomcast,Msg},R) ->
+	log:msg('DEBUG', "Roomcast <~s>: ~s", [rn(R),Msg]),
 	Fun = fun (Pid) -> gen_server:cast(Pid,Msg) end, 
 	lists:map(Fun, pg2:get_members(rn(R))),
 	{ noreply, R}.

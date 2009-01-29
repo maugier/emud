@@ -28,10 +28,15 @@ handle_cast({say, From, Text}, {Char,Ctrl}) ->
 	Ctrl ! {say, From, Text},
 	{ok, {Char,Ctrl}};
 
+handle_cast({join,R},{_Char,Ctrl}) ->
+	Ctrl ! {display, ["Welcome to", {color, green, R#room.title}]};
+
 handle_cast(shutdown,S) -> 
 	{stop, shutdown, S}.
 
-handle_info(_I,S) ->
+handle_info({input,Text},{Chr,_}=S) ->
+	gen_server:cast(Chr#character.room, 
+		{ roomcast, { say, self(), Text }}),
 	{noreply, S}.
 
 terminate(Reason, {Char,_}) ->
