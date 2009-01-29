@@ -15,7 +15,9 @@ loop(Ctrl,Sock,Prpt) ->
 	receive
 		{tcp,Sock,Packet} ->
 			Line = terminal:stripln(Packet),
-			Ctrl ! {input, Line},
+			Input = parser:parse(Line),
+			log:msg('DEBUG',"Line: ~p Input: ~p",[Line,Input]),
+			Ctrl ! {input, Input},
 			display(Sock,Prpt,[]),
 			loop(Ctrl,Sock,Prpt);
 		{tcp_closed,Sock} ->

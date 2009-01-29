@@ -8,6 +8,7 @@
 parse(B) when is_binary(B) -> parse(binary_to_list(B));
 parse(L) when is_list(L) -> rparse(string:strip(L)).
 
+rparse([]) -> [];
 rparse([$.|Text]) -> { say, Text };
 rparse([$:|Text]) -> { groupsay, Text };
 rparse([$!|Cmd]) -> { command, Cmd };
@@ -23,11 +24,13 @@ split_first_keyword(String) ->
 	split_first_keyword(String, []).
 
 split_first_keyword([32|Tail],Acc) ->
-	try 
-	{ list_to_existing_atom(lists:reverse(Acc)), string:strip(Tail) }
-	catch badarg -> unknown end;
+	{ ret_atom_cmd(Acc) ,Tail};
 
 split_first_keyword([L|Tail],Acc) ->
-	split_first_keyword(Tail, [L|Acc]).
+	split_first_keyword(Tail, [L|Acc]);
 
+split_first_keyword([],Acc) -> ret_atom_cmd(Acc).
 
+ret_atom_cmd(Cmd) ->
+	try list_to_existing_atom(lists:reverse(Cmd))
+	catch badarg -> unknown end.

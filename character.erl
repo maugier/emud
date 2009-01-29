@@ -26,16 +26,11 @@ handle_call({get,name}, _From, S={Char,_}) ->
 	{reply, Char#character.name, S}.
 
 handle_cast({say, From, Text}, {Char,Ctrl}) ->
-	FromName = case self of
+	FromName = case self() of
 		From -> {color, green, Char#character.name};
-		_    -> {color, blue, gen_server:call(From,{get,name}
-	case self() of From -> 
-		Ctrl ! {display, [{color, green, "You "},"say: ",{color,green,
-		Text}]};
-	_ ->
-		FromName = gen_server:call(From,{get,name}),
-		Ctrl ! {display, [{color, red, FromName}, " says: ", {color, blue, Text}]}
+		_    -> {color, blue, gen_server:call(From,{get,name})}
 	end,
+	Ctrl ! {display, [FromName, " says: ", {color, blue, Text}]},
 	{noreply, {Char,Ctrl}};
 
 handle_cast({join,R},S={_,Ctrl}) ->
@@ -45,10 +40,15 @@ handle_cast({join,R},S={_,Ctrl}) ->
 handle_cast(shutdown,S) -> 
 	{stop, shutdown, S}.
 
-handle_info({input,Text},{Chr,_}=S) ->
-	room:cast(Chr#character.room, 
-		{ roomcast, { say, self(), Text }}),
-	{noreply, S}.
+handle_info({input,Cmd},{Chr,Ctl}) ->
+	log:msg('DEBUG',"Got message: ~p",[Cmd]),
+	case Cmd of 
+		{say, Text} ->
+			room:cast(Chr#character.room, 
+			{ roomcast, { say, self(), Text }});
+		_ -> Ctl ! {display, "What ?"}
+	end,
+	{noreply, {Chr,Ctl}}.
 
 terminate(Reason, {Char,_}) ->
 	room:call(Char#character.room, leave),
