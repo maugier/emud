@@ -11,12 +11,12 @@ interact(Ctrl) ->
 
 loop(Ctrl,Sock,Prpt) ->
 	inet:setopts(Sock,[{active,once}]),
-	log:msg('DEBUG',"tcp loop ok",[]),
+	%log:msg('DEBUG',"tcp loop ok",[]),
 	receive
 		{tcp,Sock,Packet} ->
 			Line = terminal:stripln(Packet),
 			Input = parser:parse(Line),
-			log:msg('DEBUG',"Line: ~p Input: ~p",[Line,Input]),
+			%log:msg('DEBUG',"Line: ~p Input: ~p",[Line,Input]),
 			Ctrl ! {input, Input},
 			display(Sock,Prpt,[]),
 			loop(Ctrl,Sock,Prpt);

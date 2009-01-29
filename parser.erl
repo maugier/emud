@@ -32,5 +32,8 @@ split_first_keyword([L|Tail],Acc) ->
 split_first_keyword([],Acc) -> ret_atom_cmd(Acc).
 
 ret_atom_cmd(Cmd) ->
-	try list_to_existing_atom(lists:reverse(Cmd))
-	catch badarg -> unknown end.
+	try 
+		list_to_existing_atom(lists:reverse(Cmd))
+	catch 
+		error:badarg -> unknown
+	end.

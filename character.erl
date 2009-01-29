@@ -25,6 +25,7 @@ init({Name,Ctrl}) ->
 handle_call({get,name}, _From, S={Char,_}) ->
 	{reply, Char#character.name, S}.
 
+% DANGER - risk of deadlock here !
 handle_cast({say, From, Text}, {Char,Ctrl}) ->
 	FromName = case self() of
 		From -> {color, green, Char#character.name};
@@ -41,7 +42,7 @@ handle_cast(shutdown,S) ->
 	{stop, shutdown, S}.
 
 handle_info({input,Cmd},{Chr,Ctl}) ->
-	log:msg('DEBUG',"Got message: ~p",[Cmd]),
+	%log:msg('DEBUG',"Got message: ~p",[Cmd]),
 	case Cmd of 
 		{say, Text} ->
 			room:cast(Chr#character.room, 
