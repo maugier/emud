@@ -8,7 +8,7 @@ print_prompt(L,P) -> terminal:print_prompt(L,P).
 read() -> terminal:read().
 
 vsn_info() ->
-	["Welcome to ", world:info(server_name), " running EMud v0.1 !\n"].
+	["Welcome to ", settings:info(server_name), " running EMud v0.1 !\n"].
 
 start(S) ->
 	terminal:init(S),
@@ -21,7 +21,7 @@ start(S) ->
 	end.
 
 new() ->
-	case world:info(signup) of false ->
+	case settings:info(signup) of false ->
 		print(["Sorry, signups are closed for now.\n",
 		"Try again later :)\n"]),
 		signup_closed;

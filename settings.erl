@@ -1,4 +1,4 @@
--module(world).
+-module(settings).
 
 -export([info/1]).
 

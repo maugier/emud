@@ -10,8 +10,8 @@ read() -> terminal:read().
 
 start(Account) ->
 	Clist = char_db:list(account:get(Account,user)),
-	print_prompt(["--==[ ",world:info(server_name)," ]==--\n",
-		world:info(banner),
+	print_prompt(["--==[ ",settings:info(server_name)," ]==--\n",
+		settings:info(banner),
 		"Pick your character: \n",
 		charlist(Clist)], "> "),
 	Char = read(),
