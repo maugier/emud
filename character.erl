@@ -15,12 +15,18 @@ start_link(Name) ->
 		?MODULE, {Name,Ctrl}, []).
 	
 init({Name,Ctrl}) ->
-	log:msg('DEBUG', "Character server [~s] starting", [Name]),
+	log:msg('DEBUG', "Character [~s] starting", [Name]),
 	{ok, Char} = char_db:load(Name),
+	pg2:join(all_characters, self()),
+	gen_server:call({room, Char#character.room}, join),
 	{ok, {Char, Ctrl}}.
 
 handle_call({get,name}, _From, {Char,_}) ->
 	{ok, Char#character.name, Char}.
+
+handle_cast({say, Text}, {Char,Ctrl}) ->
+	Ctrl ! {say, Text},
+	{ok, {Char,Ctrl}};
 
 handle_cast(shutdown,S) -> 
 	{stop, shutdown, S}.
@@ -29,7 +35,8 @@ handle_info(_I,S) ->
 	{noreply, S}.
 
 terminate(Reason, {Char,_}) ->
-	log:msg('DEBUG', "Character server [~s] terminating: ~s",
+	gen_server:call(Char#character.room, leave),
+	log:msg('DEBUG', "Character [~s] terminating: ~s",
 		[Char#character.name, Reason]),
 	char_db:save(Char).
 

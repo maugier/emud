@@ -14,6 +14,7 @@ start_link(A) ->
 	gen_server:start_link({local,?MODULE},?MODULE,A,[]).
 
 init(_) ->
+	pg2:create(all_characters),
 	case ets:file2tab(?CHARS_FILE) of
 		{ok, Tab} ->
 			log:msg('INFO',

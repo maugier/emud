@@ -43,7 +43,13 @@ create_char(Account, Name) ->
 	char_db:new(AcName, Name),
 	play(Name).
 
-play(Name) ->
-	print("Sorry, play not implemented :)\n"),
-	play_not_implemented.
+%play(Name) ->
+%	print("Sorry, play not implemented :)\n"),
+%	play_not_implemented.
 
+play(Name) ->
+	{ok, Pid} = character:start_link(Name),
+	link(Pid),
+	print("Cool, your character has been started\n"),
+	read(),
+	gen_server:cast(Pid, shutdown).

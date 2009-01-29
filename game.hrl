@@ -14,4 +14,6 @@
 -record(fighting_monster, { monster, modifiers }).
 -record(character,  { name, owner, room=default_room, team=[], objects=[] }).
 
+-record(room, { title, description }).
+
 % vim:set syntax=erlang

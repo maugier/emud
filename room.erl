@@ -1,43 +1,38 @@
 -module(room).
--author('Maxime Augier <max@xolus.net>').
+-author("Maxime Augier <max@xolus.net>").
 
--export([create_default/0, start/1, loop/2]).
+-behaviour(gen_server).
+-include("game.hrl").
+
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 
 
-create_default() ->
-	register(default_room, start("Default")).	
+rn(R) -> {room,R#room.title}.
 
-start(Name) ->
-	pg2:create(all_rooms),
-	Roompid = spawn (fun () -> loop(Name, dict:new()) end),
-	ok = pg2:join(all_rooms, Roompid),
-	Roompid.
+init(R) -> 
+	global:register_name({room, rn(R)}),
+	pg2:create(rn(R)),
+	log:msg('DEBUG', "Loading room <~s>", [R#room.title]),
+	{ ok, R}.
 
-loop(Name, Members) ->
-	receive
-		swapcode ->
-			room:loop(Name, Members);
-  		{join, Pid, Pname} ->
-			bcast({ joined, Pname }, Members),
-			loop(Name, dict:append(Pid, Pid, Members));
-		{part, Pid, Pname} ->
-			Nmem = dict:erase(Pid, Members),
-			bcast({ left, Pname }, Nmem),
-			loop(Name, Nmem);
-		{say, Pid, Pname, Text} ->
-			bcast({ said, Pid, Pname, Text }, Members),
-			loop(Name,Members);
-		{look, Pid} -> 
-			io:format("Looking..."),
-			Pid ! { see, "This is a blank room..." },
-			dict:map(fun(Obj,_) ->
-				if Obj == Pid -> ok; true -> Obj ! { look, Pid } end end, Members),
-			loop(Name, Members);
+handle_call(join,From,R) ->
+	pg2:join(rn(R), From),	
+	{ noreply, R};
 
-		Other -> io:format("unknown message in room: ~p~n", [Other])
+handle_call(leave,From,R) ->
+	pg2:leave(rn(R), From),
+	{ noreply, R}.
 
-	end.
+handle_cast({roomcast,Msg},R) ->
+	Fun = fun (Pid) -> gen_server:cast(Pid,Msg) end, 
+	lists:map(Fun, pg2:get_members(rn(R))),
+	{ noreply, R}.
 
-bcast(Msg, Members) ->
-	dict:map(fun(Pid,_) -> Pid ! Msg end, Members).
+handle_info({'DOWN',_,process,_Pid,_R}, R) ->
+	gen_server:cast(self(), {msg, "Player has disconnected."}),
+	{ noreply, R}.
 
+terminate(_Reason,{R,_}) -> 
+	pg2:delete(rn(R)),
+	log:msg('DEBUG', "Room <~s> terminating", [R#room.title]),
+	ok.
