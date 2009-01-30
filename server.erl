@@ -31,9 +31,10 @@ init(_) ->
 	%ok = mnesia:start(),
 	pg2:create(emud_terminal),
 	{ ok, {{one_for_all, 5, 60}, [ 
-		listener(),
 		account(),
-		char_db()
+		char_db(),
+		world(),
+		listener()
 	] }}.
 	
 
@@ -62,4 +63,13 @@ char_db() ->
 	  15,
 	  worker,
 	  [char_db]
+	}.
+
+world() ->
+	{ world,
+	  { supervisor, start_link, [world,[]] },
+	  permanent,
+	  20,
+	  supervisor,
+	  [world]
 	}.

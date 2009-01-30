@@ -58,5 +58,11 @@ pass(Login) ->
 		{ok, Account} ->
 			log:msg('INFO', "Login accepted for [~s] from [~p]",
 			[Login, terminal:info(peer)]),
-			menu:start(Account)
+			case (catch menu:start(Account)) of
+				shutdown -> ok;
+				ok -> ok;
+				R -> 	print(["===ERROR===\n",
+					io_lib:format("~p",[R])]),
+					throw(R)
+			end
 	end.

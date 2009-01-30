@@ -21,7 +21,15 @@ start(Account) ->
 			
 			{error,_} ->	print("What?\n"),
 					start(Account);
-			{Int,_}   ->    play(lists:nth(Int,Clist))
+			{Int,_}   ->   
+				case character:start_link(
+				lists:nth(Int,Clist)) of
+				{ok, Pid} ->
+					play(Pid);
+				{error,{already_started,_}} ->
+					print("Sorry, this character is already connected\n"),
+					start(Account)
+				end
 		end
 	end.
 
@@ -32,7 +40,11 @@ charlist(CL) ->
 charlist([],_) ->
 	"\n  (n) <NEW>\n\n";
 charlist([C|CL], N) ->
-	["  (",io_lib:format("~w",[N]),") ", C, "\n" | charlist(CL,N+1) ].
+	Color = case character:is_running(C) of
+		true -> red;
+		false -> green
+	end,
+	[{color, Color, ["  (",io_lib:format("~w",[N]),") ", C]}, "\n" | charlist(CL,N+1) ].
 
 create_char(Account) ->
 	print_prompt("What is the name of your new character ?", "name:"),
@@ -53,9 +65,6 @@ create_char(Account, Name) ->
 %	print("Sorry, play not implemented :)\n"),
 %	play_not_implemented.
 
-play(Name) ->
-	{ok, Pid} = character:start_link(Name),
+play(Pid) ->
 	link(Pid),
-	print("Cool, your character has been started\n"),
-	read(),
 	prompt:interact(Pid).

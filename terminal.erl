@@ -24,7 +24,7 @@ read() -> read(get(emud_socket)).
 read(Socket) ->
         {ok, Packet} = gen_tcp:recv(Socket, 0),
 	Line = stripln(striptelnet(Packet)),
-	log:msg('DEBUG', "received: ~p", [Line]),
+	%log:msg('DEBUG', "received: ~p", [Line]),
 	Line.
 
 
@@ -33,7 +33,7 @@ print(Line) -> print(get(emud_socket),Line).
 
 print(Socket, Line) ->
 	Data = format:parse(Line),
-	log:msg('DEBUG', "send: ~p", [Data]),
+	%log:msg('DEBUG', "send: ~p", [Data]),
 	gen_tcp:send(Socket, Data).
 
 print_prompt(Line,Prompt) ->

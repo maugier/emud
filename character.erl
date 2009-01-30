@@ -5,15 +5,23 @@
 
 -include("game.hrl").
 
--export([start_link/1, init/1, handle_call/3, handle_cast/2, 
+-export([init/1, handle_call/3, handle_cast/2, 
 handle_info/2, terminate/2, code_change/3]).
 
+-export([start_link/1, is_running/1]).
 
 start_link(Name) ->
 	Ctrl = self(),
 	gen_server:start_link({global, {character, Name}}, 
 		?MODULE, {Name,Ctrl}, []).
 	
+is_running(Name) ->
+	case global:whereis_name({character,Name}) of
+		undefined -> false;
+		_Pid -> true
+	end.
+
+
 init({Name,Ctrl}) ->
 	log:msg('DEBUG', "Character [~s] starting", [Name]),
 	{ok, Char} = char_db:load(Name),
