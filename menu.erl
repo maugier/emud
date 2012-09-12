@@ -22,14 +22,7 @@ start(Account) ->
 			{error,_} ->	print("What?\n"),
 					start(Account);
 			{Int,_}   ->   
-				case character:start_link(
-				lists:nth(Int,Clist)) of
-				{ok, Pid} ->
-					play(Pid);
-				{error,{already_started,_}} ->
-					print("Sorry, this character is already connected\n"),
-					start(Account)
-				end
+                play(lists:nth(Int,Clist))
 		end
 	end.
 
@@ -58,13 +51,22 @@ create_char(Account) ->
 
 create_char(Account, Name) ->
 	AcName = account:get(Account,user),
-	char_db:new(AcName, Name),
-	play(Name).
+	case char_db:new(AcName, Name) of
+        {error, already_exists} ->
+            print("Sorry, that character name already exists"),
+            start(Account);
+        ok -> play(Name)
+    end.   
 
 %play(Name) ->
 %	print("Sorry, play not implemented :)\n"),
 %	play_not_implemented.
 
-play(Pid) ->
-	link(Pid),
-	prompt:interact(Pid).
+play(Name) ->
+	case character:start_link(Name) of
+				{ok, Pid} ->
+                	prompt:interact(Pid);
+				{error,{already_started,_}} ->
+					print("Sorry, this character is already connected\n")
+	end.
+

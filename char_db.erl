@@ -6,7 +6,7 @@
 
 -export([init/1, handle_call/3, terminate/2, code_change/3]).
 -export([call/1]).
--export([start_link/1, save/0, save/1, load/1, list/1, new/2, list/0]).
+-export([start_link/1, save/0, save/1, create/1, load/1, list/1, new/2, list/0]).
 
 -define(CHARS_FILE, "char_db.dat").
 
@@ -45,7 +45,16 @@ handle_call(save,_From,State) ->
 	{reply, ok, State};
 
 handle_call({save,C},_From,State) ->
-	{reply, ets:insert(State,C), State};
+    true = ets:insert(State,C),
+	{reply, ok, State};
+
+handle_call({create, C = #character{name=Name,owner=Owner}},From,State) ->
+    case ets:lookup(State,Name) of
+        [] -> 
+	        log:msg('NOTICE',"[~s] created character [~s]", [Owner, Name]),
+            handle_call({save,C},From,State);
+        _  -> {reply, {error, already_exists}, State}
+    end;
 
 handle_call({load,Name},_From,State) ->
 	R = case ets:lookup(State,Name) of
@@ -68,6 +77,7 @@ terminate(_Reason,State) ->
 
 save() -> gen_server:call(?MODULE,save).
 save(C) -> gen_server:call(?MODULE, {save,C}).
+create(C) -> gen_server:call(?MODULE, {create, C}).
 load(Name) -> gen_server:call(?MODULE, {load, Name}).
 list(Owner) -> gen_server:call(?MODULE, {list, Owner}).
 list() -> gen_server:call(?MODULE, list).
@@ -77,10 +87,7 @@ call(Msg) -> gen_server:call(?MODULE, Msg).
 
 new(Owner,Name) ->
 	Char = #character{name=Name,owner=Owner},
-	save(Char),
-	log:msg('NOTICE',"[~s] created character [~s]", [Name, Owner]),
-	Char.
-
+	create(Char).
 
 code_change(_O,S,_E) ->
         {ok, S}.

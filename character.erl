@@ -23,6 +23,7 @@ is_running(Name) ->
 
 
 init({Name,Ctrl}) ->
+    process_flag(trap_exit, true),
 	log:msg('DEBUG', "Character [~s] starting", [Name]),
 	{ok, Char} = char_db:load(Name),
 	pg2:join(all_characters, self()),
@@ -39,15 +40,23 @@ handle_cast({say, From, Text}, {Char,Ctrl}) ->
 		From -> {color, green, Char#character.name};
 		_    -> {color, blue, gen_server:call(From,{get,name})}
 	end,
-	Ctrl ! {display, [FromName, " says: ", {color, blue, Text}]},
+	send(Ctrl,{display, [FromName, " says: ", {color, blue, Text}]}),
 	{noreply, {Char,Ctrl}};
 
 handle_cast({join,R},S={_,Ctrl}) ->
 	show_room(Ctrl,R),
 	{reply, S};
 
+handle_cast({attach,Ctrl},{Chr,linkdead}) ->
+    {noreply, {Chr,Ctrl}};
+
 handle_cast(shutdown,S) -> 
 	{stop, shutdown, S}.
+
+handle_info({'EXIT', Ctl, Reason}, {Chr,Ctl}) ->
+    log:msg('INFO', "Character [~s] terminal error: ~p", [Chr,Reason]),
+    % Going link-dead
+    {noreply, {Chr,linkdead}};
 
 handle_info({input,Cmd},{Chr,Ctl}) ->
 	%log:msg('DEBUG',"Got message: ~p",[Cmd]),
@@ -55,7 +64,7 @@ handle_info({input,Cmd},{Chr,Ctl}) ->
 		{say, Text} ->
 			room:cast(Chr#character.room, 
 			{ roomcast, { say, self(), Text }});
-		_ -> Ctl ! {display, "What ?"}
+		_ -> send(Ctl,{display, "What ?"})
 	end,
 	{noreply, {Chr,Ctl}}.
 
@@ -68,7 +77,9 @@ terminate(Reason, {Char,_}) ->
 code_change(_O,S,_E) ->
         {ok, S}.
 
+send(Pid,Msg) when is_pid(Pid) -> Pid ! Msg;
+send(_,Msg) -> Msg.
 
 show_room(Ctrl,R) ->
-	Ctrl ! { display, ["Welcome to ", {color, green, R#room.description}]}.
+	send(Ctrl, { display, ["Welcome to ", {color, green, R#room.description}]}).
 
