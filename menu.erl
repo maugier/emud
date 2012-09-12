@@ -66,7 +66,12 @@ play(Name) ->
 	case character:start_link(Name) of
 				{ok, Pid} ->
                 	prompt:interact(Pid);
-				{error,{already_started,_}} ->
-					print("Sorry, this character is already connected\n")
+				{error,{already_started,Pid}} ->
+                    case character:attach(Pid) of
+                        ok -> prompt:interact(Pid);
+                        {error, attached} ->
+					        print("Sorry, this character is already connected\n")
+                    end
+                            
 	end.
 

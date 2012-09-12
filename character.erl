@@ -31,6 +31,14 @@ init({Name,Ctrl}) ->
 	show_room(Ctrl,R),
 	{ok, {Char, Ctrl}}.
 
+handle_call({attach,Ctrl},_From,{Chr,linkdead}) ->
+    link(Ctrl),
+    log:msg('INFO', "Character [~s] reattached to ~p", [Chr,Ctrl]),
+    {reply, ok, {Chr,Ctrl}};
+
+handle_call({attach,_},_From,State) ->
+    {reply, {error, attached}, State};
+
 handle_call({get,name}, _From, S={Char,_}) ->
 	{reply, Char#character.name, S}.
 
@@ -47,8 +55,6 @@ handle_cast({join,R},S={_,Ctrl}) ->
 	show_room(Ctrl,R),
 	{reply, S};
 
-handle_cast({attach,Ctrl},{Chr,linkdead}) ->
-    {noreply, {Chr,Ctrl}};
 
 handle_cast(shutdown,S) -> 
 	{stop, shutdown, S}.
