@@ -3,8 +3,9 @@ Quickstart (local server in foreground):
 
 1) Edit world.erl, adjust world global parameters
 2) Edit server.erl, change port if needed
-3) In same directory, launch erlang console:
+3) In same directory, compile, then launch erlang console:
 
+ $ erl -make
  $ erl
 
 4) At erlang console, boot single server config:
